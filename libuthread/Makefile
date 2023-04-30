@@ -13,10 +13,15 @@ endif
 
 all: $(lib)
 
+
 # Make libuthread.a
 $(lib): $(objs)
-	@echo "CC	$@"
-	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
+	@echo "AR    $@"
+	$(Q)ar rcs $@ $^
+# # Make libuthread.a
+# $(lib): $(objs)
+# 	@echo "CC	$@"
+# 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 # Include dependencies
 deps := $(patsubst %.o,%.d,$(objs))
