@@ -39,7 +39,18 @@ queue_t queue_create(void)
 // Hayden O(1)
 int queue_destroy(queue_t queue)
 {
-	/* TODO Phase 1 */
+	if (queue == NULL) {
+        return -1;
+    }
+    struct node *current = queue->head;
+    struct node *next;
+    while (current != NULL) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+    free(queue);
+    return 0;
 }
 
 // Dillon O(1)
@@ -89,9 +100,36 @@ int queue_dequeue(queue_t queue, void **data)
 // Hayden NOT O(1)
 int queue_delete(queue_t queue, void *data)
 {
-	/* TODO Phase 1 */
-	//parse linked list
-	//if data is found, delete it
+	// Initialize pointers
+    struct node* temp = queue->head;
+    struct node* prev = NULL;
+
+    // Traverse the linked list
+    while (temp != NULL && temp->data != data) {
+        prev = temp;
+        temp = temp->next;
+    }
+
+    // If the data is found, delete the node
+    if (temp != NULL) {
+        // If the node is the head of the linked list
+        if (prev == NULL) {
+            queue->head = temp->next;
+        }
+        // If the node is not the head of the linked list
+        else {
+            prev->next = temp->next;
+        }
+        // Free the memory used by the node
+        free(temp);
+        // Decrement the length of the linked list
+        queue->length--;
+        return 0;
+    }
+    // If the data is not found, return an error
+    else {
+        return -1;
+    }
 }
 
 // Together NOT O(1)
@@ -104,6 +142,6 @@ int queue_iterate(queue_t queue, queue_func_t func)
 int queue_length(queue_t queue)
 {
 	/* TODO Phase 1 */
-	//return queue->length;
+	return queue->length;
 }
 
