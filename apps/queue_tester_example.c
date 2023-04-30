@@ -15,6 +15,20 @@ do {									\
 	}									\
 } while(0)
 
+void test_delete(queue_t queue){
+	int *data, ret, length;
+	length = queue_length(queue);
+	printf("%d\n", length);
+	for(int i = 0; i < queue_length(queue); i++) {
+		ret = queue_dequeue(queue, (void**)&data);
+		if(ret != 0)
+			fprintf(stderr, "---------------Failed to remove item in queue\n");
+	}
+	ret = queue_destroy(queue);
+	if(ret != 0)
+		fprintf(stderr, "---------------Failed to delete queue\n");
+}
+
 /* Create */
 void test_create(void)
 {
@@ -24,149 +38,90 @@ void test_create(void)
 }
 
 /* Enqueue/Dequeue simple */
-void test_queue_simple(void)
+void test_FIFO(void)
 {
-	int data = 3, *ptr;
+	int data = 3, data1 = 23, *ptr;
 	queue_t q;
 
 	fprintf(stderr, "*** TEST queue_simple ***\n");
 
 	q = queue_create();
 	queue_enqueue(q, &data);
+	queue_enqueue(q, &data1);
 	queue_dequeue(q, (void**)&ptr);
-	TEST_ASSERT(ptr == &data);
+	TEST_ASSERT(*ptr == data);
+	//test_delete(q);
 }
 
 //test case to check if a new queue is empty
 void test_queue_empty(void) {
 	//make sure queue is empty
 	queue_t queue;
-	if (queue_is_empty(&queue) == 0) {
-		TEST_ASSERT(queue_is_empty(&queue) == 0 && "queue is empty");
-	}
-	fprintf(stderr, "*** TEST queue_simple ***\n");
+	queue= queue_create();
+	fprintf(stderr, "*** TEST queue empty ***\n");
+	TEST_ASSERT(queue_length(queue) == 0);
+	//test_delete(queue);
 }
 
 void test_add_item(void)
 {
+	int data = 23;
 	queue_t queue;
-    int ret = queue_init(&queue);
-    TEST_ASSERT(ret == 0 && "queue_init failed");
+	fprintf(stderr, "*** TEST add item ***\n");
+    queue = queue_create();
+    int ret = queue_enqueue(queue, &data);
+	TEST_ASSERT(ret == 0);
+	//test_delete(queue);
 }
+
+void test_addRemove_mult_items() {
+    queue_t queue;
+    int data = 1, ret, *ptr;
+	const int n = 100;
+    queue = queue_create();
+    fprintf(stderr, "*** TEST adding and remove mult items ***\n");
+
+	for(int i = 0; i < n; i++) {
+		ret = queue_enqueue(queue, &data);
+		data++;
+		if(ret != 0)
+			fprintf(stderr, "Failed to queue_enqueue\n");
+	}
+	TEST_ASSERT(queue_length(queue) == n);
+	for(int i = 0; i < n; i++) {
+		ret = queue_dequeue(queue, (void**)&ptr);
+		if(ret != 0)
+			fprintf(stderr, "Failed to queue_dequeue\n");
+	}
+	TEST_ASSERT(queue_length(queue) == 0);
+	//test_delete(queue);
+}
+
+void test_queue_dequeue(void){
+	queue_t queue;
+	int data = 1, ret, *ptr;
+
+	queue = queue_create();
+	fprintf(stderr, "*** TEST queue dequeue ***\n");
+	ret = queue_enqueue(queue, &data);
+	if(ret != 0)
+		fprintf(stderr, "Failed to queue_enqueue\n");
+	ret = queue_dequeue(queue, (void**)&ptr);
+	if(ret != 0)
+		fprintf(stderr, "Failed to queue_dequeue\n");
+	TEST_ASSERT(data == *ptr);
+	//test_delete(queue);
+}
+
 
 int main(void)
 {
 	test_create();
-	test_queue_simple();
+	test_FIFO();
 	test_queue_empty();
 	test_add_item();
+	test_addRemove_mult_items();
+	test_queue_dequeue();
 
 	return 0;
 }
-
-// Create a new queue using the queue_create() function.
-// Check if the queue is empty using the queue_empty() function.
-// The expected result is that the queue should be empty.
-// Test case to check if an item can be added to the queue
-
-
-// Create a new queue using the queue_create() function.
-// Add an item to the queue using the queue_enqueue() function.
-// Check if the queue is empty using the queue_empty() function.
-// The expected result is that the queue should not be empty.
-// Test case to check if multiple items can be added to the queue
-// int main() {
-//     queue_t queue;
-//     int data = 42;
-//     int ret = queue_init(&queue);
-//     assert(ret == 0 && "queue_init failed");
-
-//     ret = queue_enqueue(&queue, &data);
-//     assert(ret == 0 && "queue_enqueue failed");
-
-//     return 0;
-// }
-
-
-// Create a new queue using the queue_create() function.
-// Add multiple items to the queue using the queue_enqueue() function.
-// Check the size of the queue using the queue_size() function.
-// The expected result is that the size of the queue should match the number of items added.
-// Test case to check if an item can be removed from the queue
-// int main() {
-//     queue_t queue;
-//     int data = 42;
-//     int ret = queue_init(&queue);
-//     assert(ret == 0 && "queue_init failed");
-
-//     assert(queue_is_empty(&queue) && "queue is not empty");
-
-//     return 0;
-// }
-
-
-// Create a new queue using the queue_create() function.
-// Add an item to the queue using the queue_enqueue() function.
-// Remove the item from the queue using the queue_dequeue() function.
-// Check if the queue is empty using the queue_empty() function.
-// The expected result is that the queue should be empty.
-// Test case to check if the first item added to the queue is the first one to be removed (FIFO behavior)
-// int main() {
-//     queue_t queue;
-//     int data = 42;
-//     int ret = queue_init(&queue);
-//     assert(ret == 0 && "queue_init failed");
-
-//     ret = queue_enqueue(&queue, &data);
-//     assert(ret == 0 && "queue_enqueue failed");
-
-//     assert(!queue_is_empty(&queue) && "queue is empty");
-
-//     return 0;
-// }
-
-
-// Create a new queue using the queue_create() function.
-// Add multiple items to the queue using the queue_enqueue() function.
-// Remove an item from the queue using the queue_dequeue() function.
-// Check if the removed item is the first item that was added to the queue.
-// Repeat the process for all items in the queue.
-// The expected result is that the removed items should match the order in which they were added.
-// Test case to check if the queue can handle a large number of items
-// int main() {
-//     queue_t queue;
-//     int data1 = 42;
-//     int data2 = 99;
-//     int ret = queue_init(&queue);
-//     assert(ret == 0 && "queue_init failed");
-
-//     ret = queue_enqueue(&queue, &data1);
-//     assert(ret == 0 && "queue_enqueue failed");
-
-//     ret = queue_enqueue(&queue, &data2);
-//     assert(ret == 0 && "queue_enqueue failed");
-
-//     int *ptr = (int*)queue_dequeue(&queue);
-//     assert(ptr != NULL && "queue_dequeue failed");
-//     assert(*ptr == 42 && "dequeued wrong element");
-
-//     return 0;
-// }
-
-
-// Create a new queue using the queue_create() function.
-// Add a large number of items to the queue using the queue_enqueue() function.
-// Check if the size of the queue matches the number of items added.
-// Remove all items from the queue using the queue_dequeue() function.
-// Check if the queue is empty using the queue_empty() function.
-// The expected result is that the size of the queue should match the number of items added and that the queue should be empty after removing all items.
-// int main() {
-//     queue_t queue;
-//     int ret = queue_init(&queue);
-//     assert(ret == 0 && "queue_init failed");
-
-//     void *ptr = queue_dequeue(&queue);
-//     assert(ptr == NULL && "queue_dequeue failed");
-
-//     return 0;
-// }

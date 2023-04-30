@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdio.h>
 #include "queue.h"
 
 // Notes:
@@ -41,17 +41,11 @@ queue_t queue_create(void)
 // Hayden O(1)
 int queue_destroy(queue_t queue)
 {
-	if (queue != NULL)
+	if (queue == NULL || queue->length > 0)
 	{
 		return -1;
 	}
-	// struct node *current = queue->head;
-	// struct node *next;
-	// while (current != NULL) {
-	//     next = current->next;
-	//     free(current);
-	//     current = next;
-	// }
+
 	free(queue);
 	return 0;
 }
@@ -75,6 +69,8 @@ int queue_enqueue(queue_t queue, void *data)
 	// Add new node to queue
 	if (queue->head == NULL)
 		queue->head = newNode;
+	else
+		queue->tail->next = newNode;
 	queue->tail = newNode;
 	queue->length++;
 
@@ -86,19 +82,24 @@ int queue_dequeue(queue_t queue, void **data)
 {
 	// Check for valid inputs
 	if (queue == NULL || data == NULL || queue->head == NULL || queue->tail == NULL || queue->length == 0)
+	{
 		return -1;
+	}
 
 	// Set head data from queue to data
 	*data = queue->head->data;
 
 	// Remove head from queue and update the queue
 	struct node *temp = queue->head;
-	queue->head = queue->head->next;
+	queue->head = temp->next;
 	queue->length--;
 	free(temp);
 
 	if (queue->length == 0)
+	{
 		queue->tail = NULL;
+		queue->head = NULL;
+	}
 
 	return 0;
 }
@@ -149,12 +150,12 @@ int queue_iterate(queue_t queue, queue_func_t func)
 	if (queue == NULL || func == NULL)
 		return -1;
 
-	if(queue->length <= 0)
+	if (queue->length <= 0)
 		return 0;
-	
+
 	// Call func on each node in the queue
 	struct node *node;
-	struct node *next = queue->head; 
+	struct node *next = queue->head;
 	while (node != NULL || next != NULL)
 	{
 		node = next;
