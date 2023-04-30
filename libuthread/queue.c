@@ -82,6 +82,9 @@ int queue_dequeue(queue_t queue, void **data)
 	queue->head = queue->head->next;
 	queue->length--;
 	free(temp);
+
+	if (queue->length == 0)
+		queue->tail = NULL;
 	
 	return 0;
 }
