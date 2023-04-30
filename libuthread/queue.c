@@ -39,16 +39,16 @@ queue_t queue_create(void)
 // Hayden O(1)
 int queue_destroy(queue_t queue)
 {
-	if (queue == NULL) {
+	if (queue != NULL) {
         return -1;
     }
-    struct node *current = queue->head;
-    struct node *next;
-    while (current != NULL) {
-        next = current->next;
-        free(current);
-        current = next;
-    }
+    // struct node *current = queue->head;
+    // struct node *next;
+    // while (current != NULL) {
+    //     next = current->next;
+    //     free(current);
+    //     current = next;
+    // }
     free(queue);
     return 0;
 }
