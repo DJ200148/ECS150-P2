@@ -38,10 +38,12 @@ struct uthread_tcb *uthread_current(void)
 
 void uthread_yield(void)
 {
+
 	struct uthread_tcb *next_thread;
+	
 	struct uthread_tcb *current = uthread_current();
 	// Put the current thread back on the queue and get the next thread
-	queue_enqueue(ready_Q, uthread_current());
+	queue_enqueue(ready_Q, current);
 	queue_dequeue(ready_Q, (void**)&next_thread);
 	
 	if (next_thread == NULL)
@@ -49,6 +51,7 @@ void uthread_yield(void)
 	
 	if(current != next_thread)
 	{
+		printf("current != next_thread\n");
 		// Prep thread
 		current_thread->state = ready;
 		next_thread->state = running;
@@ -61,25 +64,24 @@ void uthread_yield(void)
 
 void uthread_exit(void)
 {
-	// Set the current thread to exited
+	// Set the current thread to exited and remove it
 	current_thread->state = exited;
-	// destroy the stack and context
 	uthread_ctx_destroy_stack(current_thread->stack);
-	// add the thread to the exited_Q
-	queue_enqueue(exited_Q, current_thread);
+	queue_enqueue(exited_Q, uthread_current());
 	// yield to the next thread
-
 	struct uthread_tcb *next_thread;
 	queue_dequeue(ready_Q, (void**)&next_thread);
 	
 	current_thread = next_thread;
-	// Swap contexts
-	uthread_ctx_switch(current_thread->context, next_thread->context);
 	current_thread->state = running;
+	uthread_ctx_switch(current_thread->context, current_thread->context);
+	printf("Here1\n");
 }
 
 int uthread_create(uthread_func_t func, void *arg)
 {
+	printf("Herecreate\n");
+
 	// Make a new thread
 	struct uthread_tcb *new_thread = malloc(sizeof(struct uthread_tcb));
 	// Check for thread allocation failure
@@ -127,9 +129,9 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	idle_thread->stack = uthread_ctx_alloc_stack();
 	idle_thread->context = malloc(sizeof(uthread_ctx_t));
 
-	// Check for allocation failures
-	// if (idle_thread->state == NULL || idle_thread->stack == NULL || idle_thread->context == NULL)
-	// 	return -1;
+	//Check for allocation failures
+	if (idle_thread->state != running || idle_thread->stack == NULL || idle_thread->context == NULL)
+		return -1;
 
 	// Make the idle thread the first thread we "run"
 	current_thread = idle_thread;

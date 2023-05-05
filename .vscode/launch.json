@@ -8,7 +8,7 @@
 			"name": "(gdb) Launch it",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/apps/queue_tester_example.x",
+			"program": "${workspaceFolder}/apps/uthread_yield.x",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${fileDirname}",
