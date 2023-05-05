@@ -33,7 +33,6 @@ struct uthread_tcb
 
 struct uthread_tcb *uthread_current(void)
 {
-	/* TODO Phase 2/3 */
 	return current_thread;
 }
 
@@ -69,7 +68,7 @@ void uthread_exit(void)
 	// add the thread to the exited_Q
 	queue_enqueue(exited_Q, current_thread);
 	// yield to the next thread
-	uthread_yield();
+
 	struct uthread_tcb *next_thread;
 	queue_dequeue(ready_Q, (void**)&next_thread);
 	
