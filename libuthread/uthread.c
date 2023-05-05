@@ -13,6 +13,8 @@
 /* Globals */
 queue_t ready_Q;
 queue_t exited_Q;
+struct uthread_tcb *current_thread;
+//struct uthread_tcb *idle_thread;
 
 typedef enum state
 {
@@ -32,19 +34,49 @@ struct uthread_tcb
 struct uthread_tcb *uthread_current(void)
 {
 	/* TODO Phase 2/3 */
+	return current_thread;
 }
 
 void uthread_yield(void)
 {
-	/* TODO Phase 2 */
+	struct uthread_tcb *next_thread;
+	struct uthread_tcb *current = uthread_current();
+	// Put the current thread back on the queue and get the next thread
 	queue_enqueue(ready_Q, uthread_current());
+	queue_dequeue(ready_Q, (void**)&next_thread);
 	
+	if (next_thread == NULL)
+		perror("queue_dequeue");
 	
+	if(current != next_thread)
+	{
+		// Prep thread
+		current_thread->state = ready;
+		next_thread->state = running;
+		current_thread = next_thread;
+
+		// Swap contexts
+		uthread_ctx_switch(current->context, next_thread->context);
+	}
 }
 
 void uthread_exit(void)
 {
-	/* TODO Phase 2 */
+	// Set the current thread to exited
+	current_thread->state = exited;
+	// destroy the stack and context
+	uthread_ctx_destroy_stack(current_thread->stack);
+	// add the thread to the exited_Q
+	queue_enqueue(exited_Q, current_thread);
+	// yield to the next thread
+	uthread_yield();
+	struct uthread_tcb *next_thread;
+	queue_dequeue(ready_Q, (void**)&next_thread);
+	
+	current_thread = next_thread;
+	// Swap contexts
+	uthread_ctx_switch(current_thread->context, next_thread->context);
+	current_thread->state = running;
 }
 
 int uthread_create(uthread_func_t func, void *arg)
@@ -75,10 +107,10 @@ int uthread_create(uthread_func_t func, void *arg)
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	// Preempt check
-	if (preempt)
-		preempt_start(preempt);
-	
+	//Preempt check
+	// if (preempt)
+	// 	preempt_start(preempt);
+	(void)preempt;
 	// Initialize the ready_Q and exited_Q
 	ready_Q = queue_create();
 	exited_Q = queue_create();
@@ -87,17 +119,21 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		return -1;
 
 	// Create the main thread
-	struct uthread_tcb *main_thread = malloc(sizeof(struct uthread_tcb));
+	struct uthread_tcb *idle_thread = malloc(sizeof(struct uthread_tcb));
 	// Check for thread allocation failure
-	if (main_thread == NULL)
+	if (idle_thread == NULL)
 		return -1;
 	// Prep the thread
-	main_thread->state = running;
-	main_thread->stack = uthread_ctx_alloc_stack();
-	main_thread->context = malloc(sizeof(uthread_ctx_t));
+	idle_thread->state = running;
+	idle_thread->stack = uthread_ctx_alloc_stack();
+	idle_thread->context = malloc(sizeof(uthread_ctx_t));
+
 	// Check for allocation failures
-	if (main_thread->state == NULL || main_thread->stack == NULL || main_thread->context == NULL)
-		return -1;
+	// if (idle_thread->state == NULL || idle_thread->stack == NULL || idle_thread->context == NULL)
+	// 	return -1;
+
+	// Make the idle thread the first thread we "run"
+	current_thread = idle_thread;
 	
 	// Check for thread creation failure
 	if (uthread_create(func, arg))
@@ -107,38 +143,22 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 	while(1)
 	{
 		// Check for completed threads
+		while(queue_length(exited_Q) > 0){
+			// Deallocate the dead threads
+			struct uthread_tcb *exited_thread;
+			queue_dequeue(exited_Q, (void**)&exited_thread);
+			free(exited_thread);
+		}
+
+		// Check if all the threads are completed
+		if(queue_length(ready_Q) <= 0)
+			break;		
 		
-		// Check if the ready_Q is empty
-		if (queue_length(ready_Q) == 0)
-			break;
-		// Dequeue the next thread
-		struct uthread_tcb *next_thread = queue_dequeue(ready_Q, NULL);
-		// Check for dequeue failure
-		if (next_thread == NULL)
-			return -1;
-		// Set the next thread to running
-		next_thread->state = running;
-		// Swap contexts
-		uthread_ctx_switch(main_thread->context, next_thread->context);
-		// Check if the thread has exited
-		if (next_thread->state == exited)
-		{
-			// Free the stack and context
-			uthread_ctx_destroy_stack(next_thread->stack);
-			free(next_thread->context);
-			// Add the thread to the exited_Q
-			queue_enqueue(exited_Q, next_thread);
-		}
-		else
-		{
-			// Add the thread back to the ready_Q
-			queue_enqueue(ready_Q, next_thread);
-		}
 		uthread_yield();
 	}
 
-	if(preempt)
-		preempt_stop();
+	// if(preempt)
+	// 	preempt_stop();
 		
 	return 0;
 }
@@ -150,5 +170,6 @@ void uthread_block(void)
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
+	(void)uthread;
 	/* TODO Phase 3 */
 }
