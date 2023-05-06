@@ -10,11 +10,12 @@
 #include "uthread.h"
 #include "queue.h"
 
+
 /* Globals */
 queue_t ready_Q;
 queue_t exited_Q;
 struct uthread_tcb *current_thread;
-//struct uthread_tcb *idle_thread;
+struct uthread_tcb *idle_thread;
 
 typedef enum state
 {
@@ -29,6 +30,7 @@ struct uthread_tcb
 	state_t state;
 	void *stack;
 	uthread_ctx_t *context;
+	queue_t blocked_Q;
 };
 
 struct uthread_tcb *uthread_current(void)
@@ -51,7 +53,6 @@ void uthread_yield(void)
 	
 	if(current != next_thread)
 	{
-		printf("current != next_thread\n");
 		// Prep thread
 		current_thread->state = ready;
 		next_thread->state = running;
@@ -71,17 +72,15 @@ void uthread_exit(void)
 	// yield to the next thread
 	struct uthread_tcb *next_thread;
 	queue_dequeue(ready_Q, (void**)&next_thread);
+	struct uthread_tcb* curr = current_thread;
 	
 	current_thread = next_thread;
 	current_thread->state = running;
-	uthread_ctx_switch(current_thread->context, current_thread->context);
-	printf("Here1\n");
+	uthread_ctx_switch(curr->context, next_thread->context);
 }
 
 int uthread_create(uthread_func_t func, void *arg)
 {
-	printf("Herecreate\n");
-
 	// Make a new thread
 	struct uthread_tcb *new_thread = malloc(sizeof(struct uthread_tcb));
 	// Check for thread allocation failure
@@ -120,17 +119,17 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		return -1;
 
 	// Create the main thread
-	struct uthread_tcb *idle_thread = malloc(sizeof(struct uthread_tcb));
+	idle_thread = malloc(sizeof(struct uthread_tcb));
 	// Check for thread allocation failure
 	if (idle_thread == NULL)
 		return -1;
 	// Prep the thread
 	idle_thread->state = running;
-	idle_thread->stack = uthread_ctx_alloc_stack();
+	//idle_thread->stack = uthread_ctx_alloc_stack();
 	idle_thread->context = malloc(sizeof(uthread_ctx_t));
 
 	//Check for allocation failures
-	if (idle_thread->state != running || idle_thread->stack == NULL || idle_thread->context == NULL)
+	if (idle_thread->state != running || idle_thread->context == NULL)
 		return -1;
 
 	// Make the idle thread the first thread we "run"
@@ -167,10 +166,24 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 void uthread_block(void)
 {
 	/* TODO Phase 3 */
+	struct uthread_tcb *current = uthread_current();
+	
+	// Remove the current thread from the ready queue
+	queue_delete(ready_Q, current);
+	
+	// Add the current thread to the blocked queue
+	queue_enqueue(current->blocked_Q, current);
+	
+	// Yield to the next thread
+	uthread_yield();
 }
 
 void uthread_unblock(struct uthread_tcb *uthread)
 {
-	(void)uthread;
 	/* TODO Phase 3 */
+	if (uthread == NULL || uthread->state != blocked)
+		return;
+
+	uthread->state = ready;
+	queue_enqueue(ready_Q, uthread);
 }
