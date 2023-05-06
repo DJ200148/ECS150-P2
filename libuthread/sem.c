@@ -44,6 +44,25 @@ int sem_destroy(sem_t sem)
 int sem_down(sem_t sem)
 {
 	/* TODO Phase 3 */
+	/*
+	// If the semaphore is invalid, return an error
+    if (!sem) {
+        return -1;
+    }
+
+    // Wait for the semaphore to become available
+    while (atomic_fetch_sub(&sem->count, 1) <= 0) {
+        // Add the calling thread to the semaphore's wait queue
+        calling_thread = uthread_current();
+        queue_enqueue(sem->blocked_queue, calling_thread);
+
+        // Block the calling thread until the semaphore becomes available
+        uthread_block();
+    }
+
+    // The semaphore has been successfully acquired
+    return 0;
+	*/
 	if (!sem)
 		return -1;
 	
