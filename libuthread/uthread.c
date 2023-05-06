@@ -166,6 +166,7 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 void uthread_block(void)
 {
 	/* TODO Phase 3 */
+	uthread_current()->state = blocked;
 	struct uthread_tcb *current = uthread_current();
 	
 	// Remove the current thread from the ready queue
