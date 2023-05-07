@@ -23,7 +23,7 @@ static struct itimerval z;
 void preempt_disable(void)
 {
 	/* TODO Phase 4 */
-	sigprocmask(SIG_BLOCK, &x, NULL);
+	//sigprocmask(SIG_BLOCK, &x, NULL);
 }
 
 void preempt_enable(void)
