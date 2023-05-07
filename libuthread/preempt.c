@@ -14,6 +14,7 @@
  * 100Hz is 100 times per second
  */
 #define HZ 100
+
 static sigset_t x;
 static struct sigaction y;
 static struct itimerval z;

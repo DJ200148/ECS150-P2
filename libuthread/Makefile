@@ -28,11 +28,6 @@ $(lib): $(objs)
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 # Cleaning rule
-clean: FORCE
+clean:
 	@echo "CLEAN"
 	$(Q)rm -rf $(lib) $(objs) $(deps)
-
-# Keep object files around
-.PRECIOUS: %.o
-.PHONY: FORCE
-FORCE:
