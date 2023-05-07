@@ -1,6 +1,6 @@
 # Target library
 lib := libuthread.a
-objs := queue.o uthread.o context.o preempt.o
+objs := queue.o uthread.o context.o preempt.o sem.o
 
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror -MMD
@@ -13,22 +13,14 @@ endif
 
 all: $(lib)
 
+# Include dependencies
+deps := $(patsubst %.o,%.d,$(objs))
+-include $(deps)
 
 # Make libuthread.a
 $(lib): $(objs)
 	@echo "AR    $@"
 	$(Q)ar rcs $@ $^
-# # Make libuthread.a
-# $(lib): $(objs)
-# 	@echo "CC	$@"
-# 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
-
-# Include dependencies
-deps := $(patsubst %.o,%.d,$(objs))
--include $(deps)
-
-# Application objects to compile
-objs := $(patsubst %.x,%.o,$(programs))
 
 # Generic rule for compiling objects
 %.o: %.c
@@ -36,7 +28,11 @@ objs := $(patsubst %.x,%.o,$(programs))
 	$(Q)$(CC) $(CFLAGS) -c -o $@ $<
 
 # Cleaning rule
-clean: 
+clean: FORCE
 	@echo "CLEAN"
 	$(Q)rm -rf $(lib) $(objs) $(deps)
-## TODO: Phase 1
+
+# Keep object files around
+.PRECIOUS: %.o
+.PHONY: FORCE
+FORCE:
