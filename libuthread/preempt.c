@@ -15,59 +15,59 @@
  */
 #define HZ 100
 
-sigset_t x;
-struct sigaction y;
-struct itimerval z;
+struct sigaction prev_sigaction;
+struct itimerval prev_itimerval;
 
 void preempt_disable(void)
 {
-	/* TODO Phase 4 */
-	sigemptyset(&x);
-	sigaddset(&x, SIGVTALRM);
-	sigprocmask(SIG_BLOCK, &x, NULL);
+	// Initilize
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGVTALRM);
+
+	// Disable preemption by blocking the SIGVTALRM signal
+	sigprocmask(SIG_BLOCK, &set, NULL);
 }
 
 void preempt_enable(void)
 {
-	/* TODO Phase 4 */
-	/* Enable preemption by unblocking the SIGVTALRM signal */
-	sigemptyset(&x);
-	sigaddset(&x, SIGVTALRM);
-	sigprocmask(SIG_UNBLOCK, &x, NULL);
+	// Initilize
+	sigset_t set;
+	sigemptyset(&set);
+	sigaddset(&set, SIGVTALRM);
+
+	// Enable preemption by unblocking the SIGVTALRM signal
+	sigprocmask(SIG_UNBLOCK, &set, NULL);
+}
+
+void sighandler(int sig)
+{
+	(void)sig;
+	uthread_yield();
 }
 
 void preempt_start(bool preempt)
 {
-	/* TODO Phase 4 */
-	if (preempt) {
-        /* Block signal temporarily */
-        sigemptyset(&x);
-        sigaddset(&x, SIGVTALRM);
-        sigprocmask(SIG_BLOCK, &x, NULL);
+	if (!preempt)
+		return;
 
-        /* Install signal handler */
-        y.sa_handler = &uthread_yield;
-        sigemptyset(&y.sa_mask);
-        y.sa_flags = 0;
-        sigaction(SIGVTALRM, &y, NULL);
-
-        /* Configure timer */
-        z.it_value.tv_sec = 0;
-        z.it_value.tv_usec = 1000000 / HZ;
-        z.it_interval.tv_sec = 0;
-        z.it_interval.tv_usec = 1000000 / HZ;
-        setitimer(ITIMER_VIRTUAL, &z, NULL);
-
-        /* Unblock signal */
-        sigprocmask(SIG_UNBLOCK, &x, NULL);
-    }
+    // Set the timer to send SIGVTALRM every 1/HZ seconds
+    struct itimerval curr_itimerval;
+    curr_itimerval.it_interval.tv_sec = 0;
+    curr_itimerval.it_interval.tv_usec = 1000000 / HZ;
+    curr_itimerval.it_value.tv_sec = 0;
+    curr_itimerval.it_value.tv_usec = 1000000 / HZ;
+    setitimer(ITIMER_VIRTUAL, &curr_itimerval, NULL);
+	
+	// Set the sighandler to run yield on current thread
+	struct sigaction curr_sigaction;
+	curr_sigaction.sa_handler = sighandler;
+	sigaction(SIGVTALRM, &curr_sigaction, NULL);
 }
 
 void preempt_stop(void)
 {
-	/* TODO Phase 4 */
-	//restore configuration
-	sigaction(SIGVTALRM, &old_action, NULL);
-	setitimer(ITIMER_VIRTUAL, &old_itimerval, NULL);
+	// Restore prev configuration
+	setitimer(ITIMER_VIRTUAL, &prev_itimerval, NULL);
+	sigaction(SIGVTALRM, &prev_sigaction, NULL);
 }
-

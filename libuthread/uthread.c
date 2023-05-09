@@ -39,7 +39,7 @@ struct uthread_tcb *uthread_current(void)
 
 void uthread_yield(void)
 {
-
+	preempt_disable();
 	struct uthread_tcb *next_thread;
 	
 	// Put the current thread back on the queue and get the next thread
@@ -60,6 +60,7 @@ void uthread_yield(void)
 		curr_thread = next_thread;
 		uthread_ctx_switch(current->context, next_thread->context);
 	}
+	preempt_enable();
 }
 
 void uthread_exit(void)
@@ -106,10 +107,10 @@ int uthread_create(uthread_func_t func, void *arg)
 
 int uthread_run(bool preempt, uthread_func_t func, void *arg)
 {
-	//Preempt check
-	// if (preempt)
-	// 	preempt_start(preempt);
-	(void)preempt;
+	// Preempt check
+	if (preempt)
+		preempt_start(preempt);
+
 	// Initialize the ready_Q and exited_Q
 	ready_Q = queue_create();
 	exited_Q = queue_create();
@@ -156,8 +157,8 @@ int uthread_run(bool preempt, uthread_func_t func, void *arg)
 		uthread_yield();
 	}
 
-	// if(preempt)
-	// 	preempt_stop();
+	if(preempt)
+		preempt_stop();
 		
 	return 0;
 }
