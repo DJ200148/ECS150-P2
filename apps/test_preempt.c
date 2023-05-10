@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<signal.h>
+#include <signal.h>
 
 #include "uthread.h"
 #include "private.h"
@@ -26,8 +26,6 @@ void foo(void* arg)
     uthread_create(voo, NULL);
     while (1) {}  // if program doesn't terminate due to SIGINT, then it means there is error in our implmentation
 }
-
-
 
 int main(void)
 {

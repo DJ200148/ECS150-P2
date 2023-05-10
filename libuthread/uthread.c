@@ -41,6 +41,7 @@ void uthread_yield(void)
 {
 	preempt_disable();
 	struct uthread_tcb *next_thread;
+	struct uthread_tcb *current = uthread_current();
 	
 	// Put the current thread back on the queue and get the next thread
 	queue_enqueue(ready_Q, curr_thread);
@@ -49,14 +50,13 @@ void uthread_yield(void)
 	if (next_thread == NULL)
 		perror("queue_dequeue");
 	
-	if(curr_thread != next_thread)
+	if (curr_thread != next_thread)
 	{
 		// State change
 		curr_thread->state = ready;
 		next_thread->state = running;
 
 		// Swap contexts
-		struct uthread_tcb *current = uthread_current();
 		curr_thread = next_thread;
 		uthread_ctx_switch(current->context, next_thread->context);
 	}
