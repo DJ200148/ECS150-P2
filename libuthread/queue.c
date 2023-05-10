@@ -4,11 +4,6 @@
 #include <stdio.h>
 #include "queue.h"
 
-// Notes:
-// Used linked list for the base of the FIFO queue
-// Have an address in the queue_t
-// makefile
-
 struct node
 {
 	void *data;
@@ -17,13 +12,11 @@ struct node
 
 struct queue
 {
-	/* TODO Phase 1 */
 	struct node *head;
 	struct node *tail;
 	int length;
 };
 
-// Dillon O(1)
 queue_t queue_create(void)
 {
 	queue_t queue = malloc(sizeof(struct queue));
@@ -38,19 +31,15 @@ queue_t queue_create(void)
 	return queue;
 }
 
-// Hayden O(1)
 int queue_destroy(queue_t queue)
 {
 	if (queue == NULL || queue->length > 0)
-	{
 		return -1;
-	}
 
 	free(queue);
 	return 0;
 }
 
-// Dillon O(1)
 int queue_enqueue(queue_t queue, void *data)
 {
 	// Check for valid inputs
@@ -71,20 +60,18 @@ int queue_enqueue(queue_t queue, void *data)
 		queue->head = newNode;
 	else
 		queue->tail->next = newNode;
+
 	queue->tail = newNode;
 	queue->length++;
 
 	return 0;
 }
 
-// Dillon O(1)
 int queue_dequeue(queue_t queue, void **data)
 {
 	// Check for valid inputs
 	if (queue == NULL || data == NULL || queue->head == NULL || queue->tail == NULL || queue->length == 0)
-	{
 		return -1;
-	}
 
 	// Set head data from queue to data
 	*data = queue->head->data;
@@ -104,7 +91,6 @@ int queue_dequeue(queue_t queue, void **data)
 	return 0;
 }
 
-// Hayden NOT O(1)
 int queue_delete(queue_t queue, void *data)
 {
 	// Initialize pointers
@@ -123,28 +109,23 @@ int queue_delete(queue_t queue, void *data)
 	{
 		// If the node is the head of the linked list
 		if (prev == NULL)
-		{
 			queue->head = temp->next;
-		}
 		// If the node is not the head of the linked list
 		else
-		{
 			prev->next = temp->next;
-		}
 		// Free the memory used by the node
 		free(temp);
 		// Decrement the length of the linked list
 		queue->length--;
 		return 0;
 	}
-	// If the data is not found, return an error
 	else
 	{
+		// If the data is not found, return an error
 		return -1;
 	}
 }
 
-// Together NOT O(1)
 int queue_iterate(queue_t queue, queue_func_t func)
 {
 	if (queue == NULL || func == NULL)
@@ -166,9 +147,7 @@ int queue_iterate(queue_t queue, queue_func_t func)
 	return 0;
 }
 
-// Hayden O(1)
 int queue_length(queue_t queue)
 {
-	/* TODO Phase 1 */
 	return queue->length;
 }
