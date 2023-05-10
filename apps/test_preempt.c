@@ -1,34 +1,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <unistd.h>
 
-#include "uthread.h"
 #include "private.h"
+#include "uthread.h"
 
+int count;
 
-void boo(void* arg)
+void thread1(void* arg)
 {
     (void) arg;
-    printf("context switch happened\n");
-}
-
-void voo(void* arg)
-{
-    (void) arg;
-    printf("You switched to me as well\n");
+    printf("Context switch to thread1\n");
+    printf("Thread looped %d times before timer was triggered\n", count);
     raise(SIGINT);
 }
 
-void foo(void* arg)
+void thread(void* arg)
 {
     (void) arg;
-    uthread_create(boo, NULL);
-    uthread_create(voo, NULL);
-    while (1) {}  // if program doesn't terminate due to SIGINT, then it means there is error in our implmentation
+    uthread_create(thread1, NULL);
+    while (1) {
+        count++;
+        // SLeep to allow count to increment
+        usleep(5); 
+    }
 }
 
 int main(void)
 {
-	uthread_run(true, foo, NULL);
+	uthread_run(true, thread, NULL);
 	return 0;
 }

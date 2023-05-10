@@ -3,6 +3,7 @@
         "*.c": "c",
         "queue.h": "c",
         "*.a": "c",
-        "uthread.h": "c"
+        "uthread.h": "c",
+        "stdio.h": "c"
     }
 }
