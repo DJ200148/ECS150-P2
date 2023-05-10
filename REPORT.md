@@ -30,7 +30,9 @@ Report suffers from a few important flaws. It typically contains a few, somewhat
 
 ## Queue Implementation
 
-Our queue is implemented using a linked list with two pointers, a head and a tail. The first element added to the list will be the first one out (FIFO). A linked list satisfied our time complexity restraints allowing us to create all of our functions (other than `queue_iterate()` and `queue_delete()`) in O(1) time. Elements can be added to the queue by first calling `queue_create()` to allocate memory, then, we can add elements by calling `queue_enqueue()` which will set the head pointer to the new node. Elements can be removed by using the `queue_dequeue`
+Our queue is implemented using a linked list with two pointers, a head and a tail. The first element added to the list will be the first one out (FIFO). A linked list satisfied our time complexity restraints allowing us to create all of our functions (other than `queue_iterate()` and `queue_delete()`) in O(1) time. 
+
+Elements can be added to the queue by first calling `queue_create()` to allocate memory, then, we can add elements by calling `queue_enqueue()` which will set the head pointer to the new node. Elements can be removed by using the `queue_dequeue()` function. This will remove the oldest item in the queue by setting the node's data pointer to its data. Calling `queue_delete()` will 
 
 
 
