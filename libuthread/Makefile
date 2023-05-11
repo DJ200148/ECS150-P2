@@ -4,7 +4,7 @@ objs := queue.o uthread.o context.o preempt.o sem.o
 
 CC := gcc
 CFLAGS := -Wall -Wextra -Werror -MMD
-CFLAGS += -g
+CFLAGS += -p
 
 # Debug flag
 ifneq ($(V),1)
