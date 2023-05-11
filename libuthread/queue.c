@@ -19,6 +19,7 @@ struct queue
 
 queue_t queue_create(void)
 {
+	// Allocate memory for queue
 	queue_t queue = malloc(sizeof(struct queue));
 
 	// Check if malloc failed
@@ -33,9 +34,11 @@ queue_t queue_create(void)
 
 int queue_destroy(queue_t queue)
 {
+	// Check for valid inputs
 	if (queue == NULL || queue->length > 0)
 		return -1;
 
+	// Free the queue
 	free(queue);
 	return 0;
 }
@@ -61,6 +64,7 @@ int queue_enqueue(queue_t queue, void *data)
 	else
 		queue->tail->next = newNode;
 
+	// Update queue
 	queue->tail = newNode;
 	queue->length++;
 
@@ -80,8 +84,10 @@ int queue_dequeue(queue_t queue, void **data)
 	struct node *temp = queue->head;
 	queue->head = temp->next;
 	queue->length--;
+	// Free the memory used by the node
 	free(temp);
 
+	// If the queue is empty, set the tail to NULL
 	if (queue->length == 0)
 	{
 		queue->tail = NULL;
@@ -128,17 +134,21 @@ int queue_delete(queue_t queue, void *data)
 
 int queue_iterate(queue_t queue, queue_func_t func)
 {
+	// Check for valid inputs
 	if (queue == NULL || func == NULL)
 		return -1;
 
+	// Check if queue is empty
 	if (queue->length <= 0)
 		return 0;
 
 	// Call func on each node in the queue
 	struct node *node;
 	struct node *next = queue->head;
+	// Iterate through the queue
 	while (node != NULL || next != NULL)
 	{
+		// Call func on the node
 		node = next;
 		next = node->next;
 		func(queue, node->data);

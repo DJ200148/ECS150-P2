@@ -6,8 +6,6 @@
 #include "private.h"
 #include "uthread.h"
 
-struct uthread_tcb *call_thread;
-
 struct semaphore
 {
 	size_t count;
@@ -18,12 +16,15 @@ sem_t sem_create(size_t count)
 {
 	// Allocate a new sem
 	sem_t new_sem = malloc(sizeof(struct semaphore));
+	// Check for invalid inputs
 	if (!new_sem)
 		return NULL;
 
 	// Initialize sem
 	new_sem->count = count;
 	new_sem->blocked_Q = queue_create();
+
+	// Check for invalid inputs
 	if (!new_sem->blocked_Q)
 	{
 		free(new_sem);
@@ -70,6 +71,7 @@ int sem_up(sem_t sem)
 
 	sem->count++;
 
+	// Unblock the first thread in the blocked queue
 	struct uthread_tcb *thread_to_unblock;
 	if (!queue_dequeue(sem->blocked_Q, (void **)&thread_to_unblock))
 		uthread_unblock(thread_to_unblock);
