@@ -139,21 +139,3 @@ thread was able to run and terminate the process. We chose this method because
 it was a simple and straight forward method to test the functionality of the 
 uthread library's signal handling ability.  
 
-
-# Release Procedures
-- Make a new branch off of master called `turnedin`
-- Remove all unessesary files from the `turnedin`
-- change the MAKEFILES and remove the -g flag use -p -Wall -Wextra -Werror
-- Turn in the project on gradescope
-
-
-## Items in the `turnedin` branch
-- `uthread.c`
-- `preemept.c`
-- `queue.c`
-- `sem.c`
-- `AUTHORS`
-- `REPORT.md`
-- `libuthread/Makefile`
-- `apps/queue_tester.c`
-- `apps/test_preempt.c`
